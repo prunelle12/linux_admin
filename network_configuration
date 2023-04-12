@@ -1,0 +1,136 @@
+
+1.#mkdir /linuxrepo
+2.cd /media/RHEL_ by pressing on TaB IT WILL COMPLETE THE LINE
+3.cd /Packages
+4.[....Packages on RHEL6 and /Packages]rp
+#cp * -v /eva (-v is verbose to show all that is beeing copied)
+5.rpm -ivh deltarpm[Tab]
+6.rpm -ivh python-deltarpm[Tab]
+7.#rpm -ivh createrepo-0.4.11-3.....rpm
+8.#createrepo -v /linuxrepo  --compile an XML file to resolve dependency
+---createrepo is a program that creates a repomd (xml-based rpm metadata) 
+repository from a set of rpms. 
+9.#vim /etc/yum.repos.d/rhel.... press tab
+cd /etc/yum.repos.d
+#rm -f *.repo (this is done in case there some default files messing up your repo to function)
+#vim /etc/yum.repos.d/class.repo
+[Server]
+name=Linux Server
+baseurl=file:///linuxrepo
+enabled=1
+gpgcheck=0
+    
+:wq
+1.to copy we press 7 then yy
+2.delete : select using down or 
+upward arrow then press : dd
+3.paste : p
+4.save and quit : shift : wq
+#yum repolist
+
+cd /etc/dhcp
+1. #yum -y install dhcp
+#yum list all |grep dhcp to check services that are installed.
+2.#vim /etc/dhcp/dhcpd.conf you dont have a sample file so we have to copy like the following:
+cp /usr/share/doc/dhcp-version(4)/dhcpd.conf.sample /etc/dhcp/dhcpd.conf
+#vim /etc/dhcp/dhcpd.conf
+File opens:
+:set number   --> go straight to line number 47
+Subnet 192.168.10.0 netmask 255.255.255.0 {
+#defaultgateway :
+option Router 192.168.10.1
+option subnt 255.255.255.0
+option doman-name "paci.net"
+option dns 8.8.8.8
+range dynamic 192.168.10.10 192.168.10.254
+default lease time :21600
+max lease time :43200
+reserving ip:
+host Pedro
+{ch
+hardware ethernet 00:as:23:a2:wq:f1
+fixed address 172.16.0.6
+}
+}
+Finally restart dhcpd services 
+chkconfig --list dhcpd to check at which run
+level the dhcpd service is running on.
+chkconfig dhcpd on
+service dhcpd restart
+
+
+1. Static IPv6 Configuration
+----------------------------
+You need to update and configure The following files for IPv6 configuration:
+/etc/sysconfig/network : Turn on networking in this file.
+/etc/sysconfig/network-scripts/ifcfg-eth0 : Set default IPv6 router IP and server
+IP address in this file.
+��Open Terminal:
+Change to Root access
+Step1: Type su Hit Enter key!
+Step2: Enter your Password
+��You need to edit the following file
+Step3: vim /etc/sysconfig/network
+Append the following line:
+NETWORKING_IPV6=yes
+��You need to change to directory with network-scripts
+Step4:
+��cd /etc/sysconfig/network-scripts/
+��vim ifcfg-eth0
+Append following config directives for IPv6:
+IPV6INIT=yes
+IPV6_AUTOCONF=no
+MTU=1500
+
+IPV6ADDR=2002::10/64
+IPV6_DEFAULTGW=2002::1
+:wq Saving file
+Restart networking
+�� /etc/init.d/network restart
+Verify your configuration by pinging ipv6
+��ping6 2002::10
+
+N.B: If you wish to add alias Ipv6 or secondary one after
+IPV6ADDR(Primary ipv6) add
+IPV6ADDR_SECONDARIES=<IPv6-IP-Address>
+
+DHCP for IPv6 (DHCPv6)
+--------------------------
+A. SERVER
+==========
+The DHCPv6 server configuration file is installed together with the
+dhcp package and it can be found at /etc/dhcp/dhcpd6.conf
+A simple DHCPv6 server configuration file can look like this:
+subnet6 2002::/64 {
+
+range6 2002::129 2002::254;
+option dhcp6.domain-search "gishushu.rw";
+
+}
+==> To start the DHCPv6 service, enter the command as root.
+�� service dhcpd6 start
+
+==> To stop the DHCPv6 server, use the command.
+�� service dhcpdv6 stop
+==> We are going to advertise our DHCP6 service using radvd
+��yum install radvd -y
+��vim /etc/radvd.conf
+:se nu
+un comment from line 6-18 removing # in front of each line
+on line 11 change prefix 2002::/64
+:wq (Write"Save" and Quit)
+��sysctl net.ipv6.conf.all.forwarding=1
+Restart the radvd service:
+�� service radvd restart
+
+B. CLIENT
+===========
+The default configuration of the DHCPv6 client works fine in the most cases. However,
+to configure a DHCP client manually:
+�� On the panel on top of you screen, right click the network icon.
+�� click "Edit Connections..."
+�� Double Click on any Interface with to have dhcpv6 ip
+�� Go to the "IPv6 Settings" tab.
+�� Method, choose "Automatic."
+�� Untick Require IPv6 addressing for this connection to complete
+�� Then Hit apply and then close.
